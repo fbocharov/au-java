@@ -167,6 +167,23 @@ public class TrieImplTest {
         trie.add("word");
 
         assertTrue(trie.remove("word"));
+
+        Trie set = new TrieImpl();
+
+        String s = "s";
+        String ss = "ss";
+        String sa = "sa";
+
+        assertTrue(set.add(s));
+        assertTrue(set.add(ss));
+        assertTrue(set.add(sa));
+
+        assertEquals(3, set.size());
+
+        assertTrue(set.remove(s));
+        assertFalse(set.remove(s));
+
+        assertEquals(2, set.howManyStartsWithPrefix("s"));
     }
 
     @org.junit.Test

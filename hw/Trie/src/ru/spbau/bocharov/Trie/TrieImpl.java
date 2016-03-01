@@ -56,7 +56,9 @@ public class TrieImpl implements Trie {
 
     private boolean removeRecursive(Node node, String element, int pos) {
         if (pos == element.length()) {
-            node.m_subtreeSize--;
+            if (node.m_isWordEnding) {
+                node.m_subtreeSize--;
+            }
             boolean wordEnding = node.m_isWordEnding;
             node.m_isWordEnding = false;
             return wordEnding;
