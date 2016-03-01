@@ -131,6 +131,23 @@ public class TrieImplTest {
         trie.add("VeryVeryLongWord1");
         trie.remove("VeryVeryLongWord");
         assertTrue(trie.contains("VeryVeryLongWord1"));
+
+        trie.add("test");
+        assertTrue(trie.contains("test"));
+
+        trie.add("testt");
+        assertTrue(trie.contains("test"));
+        assertTrue(trie.contains("testt"));
+
+        assertTrue(trie.add(""));
+        assertTrue(trie.contains(""));
+
+        trie.add("element");
+        assertTrue(trie.contains("element"));
+
+        assertFalse(trie.contains("elem"));
+        assertFalse(trie.contains("ent"));
+        assertFalse(trie.contains("tes"));
     }
 
     @org.junit.Test
@@ -184,6 +201,48 @@ public class TrieImplTest {
         assertFalse(set.remove(s));
 
         assertEquals(2, set.howManyStartsWithPrefix("s"));
+
+        Trie set2 = new TrieImpl();
+
+        assertFalse(set2.remove(""));
+        assertEquals(0, set2.size());
+
+        set2.add("test");
+        set2.add("element");
+        set2.add("AU");
+
+        assertEquals(3, set2.size());
+
+        assertTrue(set2.remove("element"));
+        assertEquals(2, set2.size());
+
+        assertTrue(set2.remove("test"));
+        assertEquals(1, set2.size());
+
+        assertFalse(set2.remove("te"));
+        assertFalse(set2.remove("A"));
+
+        assertTrue(set2.remove("AU"));
+        assertEquals(0, set2.size());
+
+        set2.add("a");
+        set2.add("aa");
+        set2.add("aaa");
+        assertEquals(3, set2.size());
+
+        assertTrue(set2.remove("aa"));
+        assertTrue(set2.contains("a"));
+        assertTrue(set2.contains("aaa"));
+        assertEquals(2, set2.size());
+
+        set2.add("");
+        assertEquals(3, set2.size());
+        assertTrue(set2.remove(""));
+        assertEquals(2, set2.size());
+
+        assertTrue(set2.remove("a"));
+        assertTrue(set2.remove("aaa"));
+        assertEquals(0, set2.size());
     }
 
     @org.junit.Test
@@ -214,6 +273,22 @@ public class TrieImplTest {
 
         trie.remove("Word");
         assertEquals(trie.size(), 0);
+
+        assertEquals(0, trie.size());
+
+        trie.add("a");
+        trie.add("aa");
+        trie.add("aaa");
+        assertEquals(3, trie.size());
+
+        trie.remove("a");
+        assertEquals(2, trie.size());
+
+        trie.remove("aa");
+        assertEquals(1, trie.size());
+
+        trie.remove("aaa");
+        assertEquals(0, trie.size());
     }
 
     @org.junit.Test
@@ -232,5 +307,34 @@ public class TrieImplTest {
         assertEquals(trie.howManyStartsWithPrefix("VeryVeryV"), 0);
         assertEquals(trie.howManyStartsWithPrefix("VeryVeryL"), 2);
         assertEquals(trie.howManyStartsWithPrefix("VeryVeryLongWord"), 1);
+
+        Trie set = new TrieImpl();
+
+        set.add("a");
+        set.add("aa");
+        set.add("aaa");
+
+        assertEquals(3, set.howManyStartsWithPrefix("a"));
+        assertEquals(2, set.howManyStartsWithPrefix("aa"));
+        assertEquals(1, set.howManyStartsWithPrefix("aaa"));
+
+        set.add("");
+        assertEquals(4, set.howManyStartsWithPrefix(""));
+
+        set.remove("aa");
+        assertEquals(3, set.howManyStartsWithPrefix(""));
+
+        set.add("ab");
+        assertEquals(3, set.howManyStartsWithPrefix("a"));
+
+        set.remove("ab");
+        set.remove("aaa");
+        set.remove("a");
+
+        assertEquals(0, set.howManyStartsWithPrefix("a"));
+        assertEquals(1, set.howManyStartsWithPrefix(""));
+
+        set.remove("");
+        assertEquals(0, set.howManyStartsWithPrefix(""));
     }
 }
