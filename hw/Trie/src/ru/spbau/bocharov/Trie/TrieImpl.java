@@ -58,10 +58,11 @@ public class TrieImpl implements Trie {
         if (pos == element.length()) {
             if (node.m_isWordEnding) {
                 node.m_subtreeSize--;
+                node.m_isWordEnding = false;
+
+                return true;
             }
-            boolean wordEnding = node.m_isWordEnding;
-            node.m_isWordEnding = false;
-            return wordEnding;
+            return false;
         }
 
         char c = element.charAt(pos);
