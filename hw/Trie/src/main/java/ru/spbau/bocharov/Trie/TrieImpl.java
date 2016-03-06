@@ -1,20 +1,64 @@
 package ru.spbau.bocharov.Trie;
 
+import java.io.*;
 import java.util.HashMap;
+import java.util.IllegalFormatException;
 import java.util.Map;
 
 /**
  * Created by fyodor on 2/17/16.
  */
-public class TrieImpl implements Trie {
+public class TrieImpl implements Trie, StreamSerializable {
 
-    private static class Node {
+    private static class Node implements StreamSerializable {
+        private static final char NODE_TERMINAL = '&';
+
         private int m_subtreeSize = 0;
         private boolean m_isWordEnding = false;
-        private final Map<Character, Node> m_children = new HashMap<>();
+        private Map<Character, Node> m_children = new HashMap<>();
+
+        @Override
+        public void serialize(OutputStream out) throws IOException {
+            DataOutputStream dos = new DataOutputStream(out);
+
+            dos.writeInt(m_subtreeSize);
+            dos.writeBoolean(m_isWordEnding);
+
+            dos.writeInt(m_children.size());
+            for (Map.Entry<Character, Node> e : m_children.entrySet()) {
+                dos.writeChar(e.getKey());
+                e.getValue().serialize(out);
+            }
+
+            dos.writeChar(NODE_TERMINAL);
+        }
+
+        @Override
+        public void deserialize(InputStream in) throws IOException {
+            DataInputStream dis = new DataInputStream(in);
+
+            m_subtreeSize = dis.readInt();
+            m_isWordEnding = dis.readBoolean();
+
+            int childCount = dis.readInt();
+            Map<Character, Node> children = new HashMap<>();
+            for (int i = 0; i < childCount; i++) {
+                char c = dis.readChar();
+                Node node = new Node();
+                node.deserialize(in);
+                children.put(c, node);
+            }
+            if (NODE_TERMINAL != dis.readChar()) {
+                throw new IllegalArgumentException("Trie.Node.deserialize: " +
+                        "can't deserialize node: invalid stream format");
+            }
+            m_children = children;
+        }
     }
 
-    private final Node m_root = new Node();
+    private final static short SIGNATURE = (short) 0b1100110011001100;
+
+    private Node m_root = new Node();
 
     @Override
     public boolean add(String element) {
@@ -103,5 +147,25 @@ public class TrieImpl implements Trie {
             node = node.m_children.get(c);
         }
         return node.m_subtreeSize;
+    }
+
+    @Override
+    public void serialize(OutputStream out) throws IOException {
+        DataOutputStream dos = new DataOutputStream(out);
+        dos.writeShort(SIGNATURE);
+        m_root.serialize(out);
+    }
+
+    @Override
+    public void deserialize(InputStream in) throws IOException {
+        DataInputStream dis = new DataInputStream(in);
+        short signature = dis.readShort();
+        if (SIGNATURE != signature) {
+            throw new IllegalArgumentException("Trie.deserialize: can't deserialize trie: stream signature mismatch.");
+        }
+        // To prevent trie from inconsistent state we need to deserialize it first and then reassign root.
+        Node newRoot = new Node();
+        newRoot.deserialize(in);
+        m_root = newRoot;
     }
 }

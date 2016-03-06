@@ -1,13 +1,19 @@
 package ru.spbau.bocharov.Trie;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * Created by fyodor on 2/17/16.
  */
 public class TrieImplTest {
 
-    @org.junit.Test
+    @Test
     public void testAdd() throws Exception {
         Trie trie = new TrieImpl();
 
@@ -78,7 +84,7 @@ public class TrieImplTest {
         assertTrue(trie.add("c"));
     }
 
-    @org.junit.Test
+    @Test
     public void testContains() throws Exception {
         Trie trie = new TrieImpl();
 
@@ -150,7 +156,7 @@ public class TrieImplTest {
         assertFalse(trie.contains("tes"));
     }
 
-    @org.junit.Test
+    @Test
     public void testRemove() throws Exception {
         Trie trie = new TrieImpl();
 
@@ -245,7 +251,7 @@ public class TrieImplTest {
         assertEquals(0, set2.size());
     }
 
-    @org.junit.Test
+    @Test
     public void testSize() throws Exception {
         Trie trie = new TrieImpl();
         assertEquals(trie.size(), 0);
@@ -291,7 +297,7 @@ public class TrieImplTest {
         assertEquals(0, trie.size());
     }
 
-    @org.junit.Test
+    @Test
     public void testHowManyStartsWithPrefix() throws Exception {
         Trie trie = new TrieImpl();
         trie.add("Very");
@@ -336,5 +342,47 @@ public class TrieImplTest {
 
         set.remove("");
         assertEquals(0, set.howManyStartsWithPrefix(""));
+    }
+
+    @Test
+    public void testSimpleSerialization() throws IOException {
+        Trie trie = instance();
+
+        assertTrue(trie.add("abc"));
+        assertTrue(trie.add("cde"));
+        assertEquals(2, trie.size());
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ((StreamSerializable) trie).serialize(outputStream);
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        Trie newTrie = instance();
+        ((StreamSerializable) newTrie).deserialize(inputStream);
+
+        assertTrue(newTrie.contains("abc"));
+        assertTrue(newTrie.contains("cde"));
+        assertEquals(2, trie.size());
+    }
+
+
+    @Test(expected=IOException.class)
+    public void testSimpleSerializationFails() throws IOException {
+        Trie trie = instance();
+
+        assertTrue(trie.add("abc"));
+        assertTrue(trie.add("cde"));
+
+        OutputStream outputStream = new OutputStream() {
+            @Override
+            public void write(int b) throws IOException {
+                throw new IOException("Fail");
+            }
+        };
+
+        ((StreamSerializable) trie).serialize(outputStream);
+    }
+
+    public static Trie instance() {
+        return new TrieImpl();
     }
 }
