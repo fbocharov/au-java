@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Collections {
-    public static <T, R> List<R> map(AbstractFunction1<? super T, R> f, Iterable<T> c) {
+    public static <T, R> List<R> map(Function1<? super T, R> f, Iterable<T> c) {
         List<R> result = new ArrayList<>();
         for (T e : c) {
             result.add(f.apply(e));
