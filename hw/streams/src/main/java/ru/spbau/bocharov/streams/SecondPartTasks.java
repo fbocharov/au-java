@@ -1,6 +1,7 @@
 package ru.spbau.bocharov.streams;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -17,8 +18,7 @@ public final class SecondPartTasks {
     // Найти строки из переданных файлов, в которых встречается указанная подстрока.
     public static List<String> findQuotes(List<String> paths, CharSequence sequence) {
         return paths.stream()
-                    .map(SecondPartTasks::safeLines)
-                    .flatMap(Collection::stream)
+                    .flatMap(SecondPartTasks::safeLines)
                     .filter(line -> line.contains(sequence))
                     .collect(toList());
     }
@@ -28,9 +28,9 @@ public final class SecondPartTasks {
     // Надо промоделировать этот процесс с помощью класса java.util.Random и посчитать, какова вероятность попасть в мишень.
     public static double piDividedBy4() {
         return zipSubstracted(new Random().doubles(), new Random().doubles())
-                .limit(SHOT_COUNT)
+                .limit(SHOOT_COUNT)
                 .filter(p -> p.x * p.x + p.y * p.y <= TARGET_RADIUS * TARGET_RADIUS)
-                .count() / (double) SHOT_COUNT;
+                .count() / (double) SHOOT_COUNT;
     }
 
     // Дано отображение из имени автора в список с содержанием его произведений.
@@ -40,7 +40,7 @@ public final class SecondPartTasks {
                            .stream()
                            .max(Comparator.comparing(e -> e.getValue().stream().mapToInt(String::length).sum()))
                            .map(Map.Entry::getKey)
-                           .orElse("");
+                           .orElse(null);
     }
 
     // Вы крупный поставщик продуктов. Каждая торговая сеть делает вам заказ в виде Map<Товар, Количество>.
@@ -55,14 +55,14 @@ public final class SecondPartTasks {
                             Integer::sum));
     }
 
-    private static final int SHOT_COUNT = 10000;
+    private static final int SHOOT_COUNT = 10000;
     private static final double TARGET_RADIUS = 0.5;
 
-    private static List<String> safeLines(String path) {
-        try (Stream<String> lines = Files.lines(Paths.get(path))) {
-            return lines.collect(toList());
+    private static Stream<String> safeLines(String path) {
+        try {
+            return Files.lines(Paths.get(path));
         } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -75,8 +75,8 @@ public final class SecondPartTasks {
     }
 
     private static class Pair {
-        private double x;
-        private double y;
+        private final double x;
+        private final double y;
 
         Pair(double x, double y) {
             this.x = x;

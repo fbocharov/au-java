@@ -93,7 +93,7 @@ public class SecondPartTasksTest {
     private static final String AUTHOR_3 = "author3";
     private static final List<String> AUTHOR_3_COMPOSITIONS =
             Collections.emptyList();
-    private static final String EMPTY_AUTHOR = "";
+    private static final String EMPTY_AUTHOR = null;
     private static final Map<String, List<String>> AUTHORS_COMPOSITIONS =
             ImmutableMap.of(
                     AUTHOR_1, AUTHOR_1_COMPOSITIONS,

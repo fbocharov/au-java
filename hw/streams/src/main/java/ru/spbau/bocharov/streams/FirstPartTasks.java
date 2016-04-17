@@ -66,7 +66,7 @@ public final class FirstPartTasks {
     // Альбом, в котором максимум рейтинга минимален
     // (если в альбоме нет ни одного трека, считать, что максимум рейтинга в нем --- 0)
     public static Optional<Album> minMaxRating(Stream<Album> albums) {
-        return albums.min(Comparator.comparing(album -> album.getTracks()
+        return albums.min(Comparator.comparingInt(album -> album.getTracks()
                                                              .stream()
                                                              .mapToInt(Track::getRating)
                                                              .max().orElse(0)));
@@ -74,12 +74,11 @@ public final class FirstPartTasks {
 
     // Список альбомов, отсортированный по убыванию среднего рейтинга его треков (0, если треков нет)
     public static List<Album> sortByAverageRating(Stream<Album> albums) {
-        return albums.sorted(Comparator.comparing(album -> album.getTracks()
+        return albums.sorted(Comparator.<Album>comparingDouble(album -> album.getTracks()
                                                                 .stream()
                                                                 .mapToInt(Track::getRating)
                                                                 .average()
-                                                                .getAsDouble(),
-                                                  reverseOrder()))
+                                                                .getAsDouble()).reversed())
                      .collect(toList());
     }
 
@@ -98,7 +97,7 @@ public final class FirstPartTasks {
 
     // Вернуть поток из объектов класса 'clazz'
     public static <R> Stream<R> filterIsInstance(Stream<?> s, Class<R> clazz) {
-        return s.filter(arg -> clazz.isAssignableFrom(arg.getClass()))
+        return s.filter(clazz::isInstance)
                 .map(clazz::cast);
     }
 }
