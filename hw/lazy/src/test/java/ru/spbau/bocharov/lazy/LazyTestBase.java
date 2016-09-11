@@ -10,27 +10,6 @@ import static org.junit.Assert.assertEquals;
 public abstract class LazyTestBase {
 
     @Test
-    public void testShouldNotFailOnNullSupplier() throws Exception {
-        assertEquals(
-                createLazy(null).get(),
-                null);
-    }
-
-    @Test
-    public void testShouldCallGetExactlyOnce() throws Exception {
-        AtomicInteger callCount = new AtomicInteger(0);
-        Supplier<Integer> sup = callCount::incrementAndGet;
-
-        Lazy<Integer> l = createLazy(sup);
-        assertEquals(
-                l.get().intValue(),
-                1);
-        assertEquals(
-                l.get().intValue(),
-                1);
-    }
-
-    @Test
     public void testShouldReturnSameObject() throws Exception {
         Lazy l = createLazy(Object::new);
         assertEquals(
@@ -39,7 +18,7 @@ public abstract class LazyTestBase {
     }
 
     @Test
-    public void testShouldCallGetInLazyManner() throws Exception {
+    public void testShouldRunSupplierInLazyManner() throws Exception {
         AtomicInteger callCount = new AtomicInteger(0);
         Supplier<Integer> sup = callCount::incrementAndGet;
 
@@ -49,6 +28,44 @@ public abstract class LazyTestBase {
                 0);
         assertEquals(
                 l.get().intValue(),
+                1);
+    }
+
+    @Test
+    public void testShouldNotRunTwiceSupplierWhichReturnsNull() throws Exception {
+        AtomicInteger callCount = new AtomicInteger(0);
+        Lazy l = createLazy(() -> {
+            callCount.incrementAndGet();
+            return null;
+        });
+
+        l.get();
+        assertEquals(
+                callCount.intValue(),
+                1);
+
+        l.get();
+        assertEquals(
+                callCount.intValue(),
+                1);
+    }
+
+    @Test
+    public void testShouldNotRunTwiceSupplierWhichReturnsSupplier() {
+        AtomicInteger callCount = new AtomicInteger(0);
+        Lazy l = createLazy(() -> {
+            callCount.incrementAndGet();
+            return this;
+        });
+
+        l.get();
+        assertEquals(
+                callCount.intValue(),
+                1);
+
+        l.get();
+        assertEquals(
+                callCount.intValue(),
                 1);
     }
 

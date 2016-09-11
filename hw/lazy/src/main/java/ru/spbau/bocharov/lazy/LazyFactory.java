@@ -13,6 +13,6 @@ public class LazyFactory {
     }
 
     public static <T> Lazy<T> createLockFreeLazy(Supplier<T> supplier) {
-        return null;
+        return new LockFreeLazy<>(supplier);
     }
 }
