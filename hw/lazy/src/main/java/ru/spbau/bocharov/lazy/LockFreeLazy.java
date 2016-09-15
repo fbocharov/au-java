@@ -24,9 +24,9 @@ public class LockFreeLazy<T> implements Lazy<T> {
         return (T) supplierOrValue;
     }
 
-    private class SupplierWrapper<T> implements Supplier<Supplier<T>> {
+    private static class SupplierWrapper<T> implements Supplier<Supplier<T>> {
 
-        private Supplier<T> wrapped = null;
+        private final Supplier<T> wrapped;
 
         SupplierWrapper(Supplier<T> supplier) {
             wrapped = supplier;
