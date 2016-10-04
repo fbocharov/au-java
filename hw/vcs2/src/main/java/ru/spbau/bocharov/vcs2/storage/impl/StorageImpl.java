@@ -78,8 +78,12 @@ public class StorageImpl implements Storage{
         return new FileOutputStream(getAbsolutePath(path).toString());
     }
 
-    private Path getRelativePath(Path path) {
-        return root.relativize(path);
+    @Override
+    public Path getAbsolutePath(Path path) {
+        if (path.isAbsolute()) {
+            return path;
+        }
+        return Paths.get(root.toString(), path.toString()).toAbsolutePath();
     }
 
 
@@ -102,10 +106,7 @@ public class StorageImpl implements Storage{
         }
     }
 
-    private Path getAbsolutePath(Path path) {
-        if (path.isAbsolute()) {
-            return path;
-        }
-        return Paths.get(root.toString(), path.toString()).toAbsolutePath();
+    private Path getRelativePath(Path path) {
+        return root.relativize(path);
     }
 }

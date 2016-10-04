@@ -17,7 +17,7 @@ public class MergeCommand extends BaseCommand {
             throw new IOException("vcs2 repository not initialized!");
         }
 
-        if (args.size() != 1) {
+        if (args.size() != 2) {
             throw new IOException("wrong number of arguments for merge");
         }
 

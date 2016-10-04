@@ -21,6 +21,8 @@ public interface Storage {
 
     List<Path> list(Path path, Predicate<Path> filter) throws IOException;
 
+    Path getAbsolutePath(Path path);
+
     long checksum(Path path) throws IOException;
 
     InputStream openForRead(Path path) throws IOException;

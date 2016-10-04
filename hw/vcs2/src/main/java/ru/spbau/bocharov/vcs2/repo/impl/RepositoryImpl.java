@@ -16,9 +16,12 @@ import java.util.stream.Collectors;
 public class RepositoryImpl implements Repository {
 
     private final Storage storage;
+    private final Predicate<Path> VCS_FILE_FILTER;
+
 
     public RepositoryImpl(Storage s) {
         storage = s;
+        VCS_FILE_FILTER = p -> p.toAbsolutePath().startsWith(storage.getAbsolutePath(Layout.getVCSRootPath()));
     }
 
     @Override
@@ -235,31 +238,39 @@ public class RepositoryImpl implements Repository {
         BranchImpl intoBranch = getBranch(into);
         BranchImpl fromBranch = getBranch(from);
 
+        clearProject(metaInfo);
+
         Iterator<RevisionImpl> intoIter = intoBranch.getRevisions().iterator();
         Iterator<RevisionImpl> fromIter = fromBranch.getRevisions().iterator();
-
-        clearProject(metaInfo);
+        RevisionImpl intoRev = null;
+        RevisionImpl fromRev = null;
         while (intoIter.hasNext() && fromIter.hasNext()) {
-            RevisionImpl intoRev = intoIter.next();
-            RevisionImpl fromRev = fromIter.next();
+            intoRev = intoIter.next();
+            fromRev = fromIter.next();
 
             if (intoRev.equals(fromRev)) {
                 rollRevision(metaInfo, intoRev);
             }
         }
 
-        while (intoIter.hasNext()) {
-            RevisionImpl rev = intoIter.next();
-            rollRevision(metaInfo, rev);
+        while (intoRev != null) {
+            rollRevision(metaInfo, intoRev);
+            intoRev = null;
+            if (intoIter.hasNext()) {
+                intoRev = intoIter.next();
+            }
         }
 
         Set<String> changedFiles = new HashSet<>();
         Set<String> removedFiles = new HashSet<>();
-        while (fromIter.hasNext()) {
-            RevisionImpl rev = fromIter.next();
-            changedFiles.addAll(rev.getChangedFiles());
-            removedFiles.addAll(rev.getRemovedFiles());
-            rollRevision(metaInfo, rev);
+        while (fromRev != null) {
+            rollRevision(metaInfo, fromRev);
+            changedFiles.addAll(fromRev.getChangedFiles());
+            removedFiles.addAll(fromRev.getRemovedFiles());
+            fromRev = null;
+            if (fromIter.hasNext()) {
+                fromRev = fromIter.next();
+            }
         }
 
         RevisionImpl mergeRevision = createRevision(
@@ -269,11 +280,10 @@ public class RepositoryImpl implements Repository {
                 "merge " + from + " into " + into);
 
         intoBranch.addRevision(mergeRevision);
+
+        save(intoBranch, Layout.getBranchPath(metaInfo.currentBranch));
     }
 
-
-    private static final Predicate<Path> VCS_FILE_FILTER = p -> p.toAbsolutePath().startsWith(
-            Layout.getVCSRootPath().toAbsolutePath());
 
     private final class StateImpl implements State {
 
@@ -311,7 +321,7 @@ public class RepositoryImpl implements Repository {
     }
 
     private boolean hasUncommitedChanges(MetaInfo metaInfo) throws IOException {
-        return !metaInfo.removedFiles.isEmpty() || !getChangedFiles(metaInfo).isEmpty();
+        return !getChangedFiles(metaInfo).isEmpty() || !metaInfo.removedFiles.isEmpty() ;
     }
 
     private void clearProject(MetaInfo metaInfo) throws IOException {
@@ -368,9 +378,14 @@ public class RepositoryImpl implements Repository {
     private Set<String> getChangedFiles(MetaInfo metaInfo) throws IOException {
         Set<String> changedFiles = new HashSet<>();
         for (String path: metaInfo.fileChecksums.keySet()) {
-            Long checksum = metaInfo.fileChecksums.get(path);
-            if (checksum == null || storage.checksum(Paths.get(path)) != checksum) {
-                changedFiles.add(path);
+            if (!storage.exists(Paths.get(path))) {
+                metaInfo.removedFiles.add(path);
+                metaInfo.fileChecksums.remove(path);
+            } else {
+                Long checksum = metaInfo.fileChecksums.get(path);
+                if (checksum == null || storage.checksum(Paths.get(path)) != checksum) {
+                    changedFiles.add(path);
+                }
             }
         }
         return changedFiles;
