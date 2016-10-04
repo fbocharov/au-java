@@ -31,7 +31,7 @@ public class CommitCommand extends BaseCommand {
 
             if (stateChanged) {
                 Revision revision = repository.commit(args.get(0));
-                System.out.println("Commited at revision " + revision.toString());
+                System.out.println("commited at revision " + revision.getId());
             } else {
                 System.out.println("Nothing to commit");
             }

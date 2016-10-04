@@ -65,7 +65,7 @@ public class RepositoryImpl implements Repository {
     @Override
     public void reset(Path path) throws IOException {
         MetaInfo metaInfo = load(Layout.getRepoMetaInfoPath());
-        if (metaInfo.fileChecksums.containsKey(path.toString())) {
+        if (!metaInfo.fileChecksums.containsKey(path.toString())) {
             throw new IOException("path " + path.toString() + " not under version control");
         }
 
@@ -117,7 +117,9 @@ public class RepositoryImpl implements Repository {
                 changedFiles,
                 metaInfo.removedFiles,
                 message);
-        getBranch(metaInfo.currentBranch).addRevision(revision);
+        BranchImpl branch = getBranch(metaInfo.currentBranch);
+        branch.addRevision(revision);
+        save(branch, Layout.getBranchPath(metaInfo.currentBranch));
 
         // update metainfo
         for (String file: changedFiles) {
@@ -313,16 +315,17 @@ public class RepositoryImpl implements Repository {
     }
 
     private void clearProject(MetaInfo metaInfo) throws IOException {
-        metaInfo.fileChecksums.clear();
-        metaInfo.removedFiles.clear();
-
         storage.list(Layout.getProjectRoot(), VCS_FILE_FILTER).forEach(p -> {
             try {
-                storage.delete(p);
+                if (metaInfo.fileChecksums.containsKey(p.toString())) {
+                    storage.delete(p);
+                }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         });
+        metaInfo.fileChecksums.clear();
+        metaInfo.removedFiles.clear();
     }
 
     private void rollRevision(MetaInfo metaInfo, RevisionImpl revision) throws IOException {
