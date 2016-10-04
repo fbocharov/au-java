@@ -80,9 +80,7 @@ public class StorageTest {
         Files.createFile(file2);
 
         assertEquals(
-                Arrays.asList(
-                        getRelativePath(SIMPLE_FILE22).toAbsolutePath(),
-                        getRelativePath(SIMPLE_FILE21).toAbsolutePath()),
+                Arrays.asList(SIMPLE_FILE22,SIMPLE_FILE21),
                 storage.list(Paths.get(""), p -> false));
     }
 
@@ -157,7 +155,7 @@ public class StorageTest {
     }
 
     private static Path getTestPath() {
-        return Paths.get("src/test/resources/storage-tests");
+        return Paths.get("src", "test", "resources", "storage-tests");
     }
 
     private static Path getRelativePath(Path subpath) {

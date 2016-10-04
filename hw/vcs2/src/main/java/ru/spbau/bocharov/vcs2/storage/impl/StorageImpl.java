@@ -17,7 +17,7 @@ public class StorageImpl implements Storage{
     private final Path root;
 
     public StorageImpl(Path r) {
-        root = r;
+        root = r.toAbsolutePath();
     }
 
     @Override
@@ -47,10 +47,15 @@ public class StorageImpl implements Storage{
     }
 
     @Override
+    public long fileSize(Path path) {
+        return getAbsolutePath(path).toFile().length();
+    }
+
+    @Override
     public List<Path> list(Path path, Predicate<Path> filter) throws IOException {
         FileFilter ff = new FileFilter(filter);
         return FileUtils.listFiles(getAbsolutePath(path).toFile(), ff, ff).stream()
-                .map(File::toPath).collect(Collectors.toList());
+                .map(File::toPath).map(this::getRelativePath).collect(Collectors.toList());
     }
 
     @Override
@@ -71,6 +76,10 @@ public class StorageImpl implements Storage{
             Files.createFile(path);
         }
         return new FileOutputStream(getAbsolutePath(path).toString());
+    }
+
+    private Path getRelativePath(Path path) {
+        return root.relativize(path);
     }
 
 

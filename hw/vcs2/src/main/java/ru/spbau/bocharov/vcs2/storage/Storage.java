@@ -17,6 +17,8 @@ public interface Storage {
 
     boolean exists(Path path);
 
+    long fileSize(Path path);
+
     List<Path> list(Path path, Predicate<Path> filter) throws IOException;
 
     long checksum(Path path) throws IOException;
