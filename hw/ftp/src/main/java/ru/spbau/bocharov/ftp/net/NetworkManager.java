@@ -7,13 +7,11 @@ import java.net.Socket;
 
 public class NetworkManager {
 
-    public ProtocolSocket createSocket(InetAddress address, int port) throws IOException {
-        return new ProtocolSocket(new Socket(address, port));
+    public Socket createSocket(InetAddress address, int port) throws IOException {
+        return new Socket(address, port);
     }
 
     public ServerSocket createServerSocket(int port) throws IOException {
         return new ServerSocket(port);
     }
-
-
 }
