@@ -90,8 +90,7 @@ public class GetCommandTest extends BaseCommandTest {
     }
 
     @Override
-    protected Command createCommand() throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException {
+    protected Command createCommand() throws CommandFactoryException {
         return CommandFactory.getInstance().createCommand("get");
     }
 

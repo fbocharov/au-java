@@ -28,14 +28,14 @@ public class FTPServer {
         serverSocket = networkManager.createServerSocket(port);
         threadPool.execute(() -> {
             try {
-                System.err.println("server started on port " + port);
+                System.out.println("server started on port " + port);
                 while (!serverSocket.isClosed()) {
                     Socket client = serverSocket.accept();
-                    System.err.println("connection received from " + client.getInetAddress() + ":" + client.getPort());
+                    System.out.println("connection received from " + client.getInetAddress() + ":" + client.getPort());
 
                     try {
                         int type = client.getInputStream().read();
-                        threadPool.execute(ExecutorFactory.getInstance().createExecutor((byte) type, client));
+                        threadPool.execute(ExecutorFactory.getInstance().createExecutor((byte) type, client, baseDir));
                     } catch (UnknownExecutorException e) {
                         System.err.println("error: " + e.getMessage());
                     }

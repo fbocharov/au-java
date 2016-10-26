@@ -4,40 +4,21 @@ import ru.spbau.bocharov.ftp.protocol.Status;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Paths;
 
-public class ListRequestExecutor implements RequestExecutor {
+class ListRequestExecutor extends BaseRequestExecutor {
 
-    private final String baseDir;
-    private final Socket socket;
-
-    public ListRequestExecutor(Socket s, String dir) {
-        socket = s;
-        baseDir = dir;
+    public ListRequestExecutor(Socket socket, String dir) {
+        super(socket, dir);
     }
 
     @Override
-    public void run() {
-        try {
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            String path = in.readUTF();
-
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-            File target = Paths.get(baseDir, path).toFile();
-            if (!target.exists() || !target.isDirectory()) {
-                out.writeInt(Status.ERROR);
-                out.writeUTF(path + ": no such directory");
-            } else {
-                out.writeInt(Status.SUCCESS);
-                out.writeInt(target.listFiles().length);
-                for (File file : target.listFiles()) {
-                    out.writeUTF(file.getPath());
-                    out.writeBoolean(file.isDirectory());
-                }
-            }
-            socket.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    protected void doRun(File argument, OutputStream out) throws IOException {
+        DataOutputStream dout = new DataOutputStream(out);
+        dout.writeInt(Status.SUCCESS);
+        dout.writeInt(argument.listFiles().length);
+        for (File file : argument.listFiles()) {
+            dout.writeUTF(file.getPath());
+            dout.writeBoolean(file.isDirectory());
         }
     }
 }

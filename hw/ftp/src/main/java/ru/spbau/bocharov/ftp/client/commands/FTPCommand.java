@@ -26,6 +26,7 @@ public abstract class FTPCommand implements Command {
                 break;
             case Status.ERROR:
                 onError(inputStream);
+                break;
             default:
                 throw new IOException("unknown request status: " + status);
         }

@@ -12,6 +12,5 @@ public abstract class BaseCommandTest {
         createCommand().execute(null);
     }
 
-    protected abstract Command createCommand() throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException;
+    protected abstract Command createCommand() throws CommandFactoryException;
 }

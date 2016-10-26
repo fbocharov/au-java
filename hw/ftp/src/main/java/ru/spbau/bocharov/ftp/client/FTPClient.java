@@ -13,11 +13,11 @@ public class FTPClient {
     private static final String PORT_ARG_NAME = "port";
     private static final String ADDR_ARG_NAME = "address";
     private static final String CMD_ARG_NAME  = "command";
-    private static final Options options = new Options();
+    private static final Options OPTIONS = new Options();
     static {
-        options.addOption(PORT_ARG_NAME, true, "ftp server port");
-        options.addOption(ADDR_ARG_NAME, true, "ftp server ip address");
-        options.addOption(CMD_ARG_NAME,  true, "command to run");
+        OPTIONS.addOption(PORT_ARG_NAME, true, "ftp server port");
+        OPTIONS.addOption(ADDR_ARG_NAME, true, "ftp server ip address");
+        OPTIONS.addOption(CMD_ARG_NAME,  true, "command to run");
     }
 
     public static void main(String[] args) {
@@ -37,7 +37,7 @@ public class FTPClient {
 
     private static CommandLine parseArgs(String[] args) throws ParseException {
         CommandLineParser parser = new DefaultParser();
-        CommandLine cmdLine = parser.parse(options, args);
+        CommandLine cmdLine = parser.parse(OPTIONS, args);
 
         if (!cmdLine.hasOption(PORT_ARG_NAME)) {
             throw new ParseException("you should specify server port");
