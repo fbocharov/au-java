@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Objects;
 
 public class FileInfo implements Serializable {
 
@@ -22,6 +23,22 @@ public class FileInfo implements Serializable {
         fileId = id;
         fileName = name;
         size = sz;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof FileInfo)) {
+            return false;
+        }
+
+        FileInfo other = (FileInfo) o;
+        return fileId == other.fileId && Objects.equals(fileName, other.fileName) &&
+                size == other.size;
+    }
+
+    @Override
+    public int hashCode() {
+        return fileId;
     }
 
     public void serialize(DataOutputStream out) throws IOException {

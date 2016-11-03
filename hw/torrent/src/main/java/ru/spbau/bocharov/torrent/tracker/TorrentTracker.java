@@ -18,6 +18,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
@@ -43,9 +44,11 @@ public class TorrentTracker extends ConnectionHandler {
 
     private final StateManager stateManager;
 
-    TorrentTracker(String statePath) throws BadCreatorException {
+    public TorrentTracker(String statePath) {
         super(DEFAULT_PORT);
-        stateManager = new StateManager(statePath, Files.exists(Paths.get(statePath)));
+        Path path = Paths.get(statePath);
+        boolean needLoad = Files.exists(path) && path.toFile().length() > 0;
+        stateManager = new StateManager(statePath, needLoad);
     }
 
     @Override

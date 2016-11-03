@@ -14,7 +14,7 @@ public class RequestType {
 
     // client-client requests
 
-    public static final byte STAT = 1;
+    public static final byte STAT = 101;
 
-    public static final byte GET = 2;
+    public static final byte GET = 102;
 }

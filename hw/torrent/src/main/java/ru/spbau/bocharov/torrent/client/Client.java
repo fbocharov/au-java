@@ -45,9 +45,11 @@ public class Client {
                         break;
                     case "get":
                         client.get(Integer.parseInt(cmdArg[1]));
+                        System.out.println("File enqueued");
                         break;
                     case "upload":
-                        client.upload(cmdArg[1]);
+                        int fileId = client.upload(cmdArg[1]);
+                        System.out.println(String.format("Uploaded with id = %d", fileId));
                         break;
                     case "quit":
                         stopped = true;

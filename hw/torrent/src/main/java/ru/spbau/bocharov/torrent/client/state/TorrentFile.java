@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public class TorrentFile implements Serializable {
 
@@ -17,6 +18,7 @@ public class TorrentFile implements Serializable {
     private final String fileName;
     private final long size;
     private final long lastPartSize;
+    private final int partCount;
 
     private final BitSet loadedParts;
 
@@ -28,8 +30,24 @@ public class TorrentFile implements Serializable {
         return new TorrentFile(id, name, size, true);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof TorrentFile)) {
+            return false;
+        }
+
+        TorrentFile other = (TorrentFile) o;
+        return fileId == other.fileId && Objects.equals(fileName, other.fileName)
+                && size == other.size && loadedParts == other.loadedParts;
+    }
+
+    @Override
+    public int hashCode() {
+        return fileId;
+    }
+
     public synchronized boolean isDownloaded() {
-        return loadedParts.cardinality() == loadedParts.length();
+        return loadedParts.length() == partCount;
     }
 
     public synchronized boolean hasPart(int part) {
@@ -55,18 +73,18 @@ public class TorrentFile implements Serializable {
             return 0;
         }
 
-        return loadedParts.size() > part + 1 ? lastPartSize : PART_SIZE;
+        return partCount > part + 1 ? PART_SIZE : lastPartSize;
     }
 
     synchronized void addPart(int part) {
-        loadedParts.flip(part);
+        loadedParts.set(part);
     }
 
     private TorrentFile(int id, String name, long sz, boolean full) {
         fileId = id;
         fileName = name;
         size = sz;
-        int partCount = (int) ((sz + PART_SIZE - 1) / PART_SIZE);
+        partCount = (int) ((sz + PART_SIZE - 1) / PART_SIZE);
         loadedParts = new BitSet(partCount);
         loadedParts.set(0, partCount, full);
         lastPartSize = partCount > 0 ? size - (partCount - 1) * PART_SIZE : 0;

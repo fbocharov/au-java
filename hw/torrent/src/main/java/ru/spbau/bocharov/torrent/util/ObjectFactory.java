@@ -12,9 +12,9 @@ public class ObjectFactory<K, O> {
     }
 
     public void register(K key, Class<? extends O> creator) throws BadCreatorException {
-        if (registry.containsKey(key)) {
-            throw new BadCreatorException(String.format("creator for key %s already exists", key.toString()));
-        }
+//        if (registry.containsKey(key)) {
+//            throw new BadCreatorException(String.format("creator for key %s already exists", key.toString()));
+//        }
 
         registry.put(key, creator);
     }

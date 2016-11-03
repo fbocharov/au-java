@@ -2,6 +2,7 @@ package ru.spbau.bocharov.torrent.client.state;
 
 import ru.spbau.bocharov.torrent.common.BaseStateManager;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,7 +22,7 @@ public class StateManager extends BaseStateManager {
         return files.get(id);
     }
 
-    public Iterable<TorrentFile> listFiles() {
+    public Collection<TorrentFile> listFiles() {
         return files.values();
     }
 

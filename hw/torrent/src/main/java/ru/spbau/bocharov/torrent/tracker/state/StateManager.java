@@ -3,6 +3,7 @@ package ru.spbau.bocharov.torrent.tracker.state;
 import ru.spbau.bocharov.torrent.common.BaseStateManager;
 import ru.spbau.bocharov.torrent.common.FileInfo;
 
+import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,17 +13,16 @@ public class StateManager extends BaseStateManager {
 
     private static final long MAX_SEEDER_TIMEOUT = 5 * 60 * 1000;
 
-    private AtomicInteger nextFileId = new AtomicInteger(0);
-    private List<FileInfo> files = new LinkedList<>();
+    private State state = new State();
     private final Object filesLock = new Object();
-    private Map<Integer, Map<InetSocketAddress, Long>> sources = new ConcurrentHashMap<>();
+    private final Map<Integer, Map<InetSocketAddress, Long>> sources = new ConcurrentHashMap<>();
 
     public StateManager(String path, boolean loadState) {
         super(path);
 
         if (loadState) {
-            files = loadState();
-            for (FileInfo file: files) {
+            state = loadState();
+            for (FileInfo file: state.files) {
                 sources.putIfAbsent(file.getFileId(), new ConcurrentHashMap<>());
             }
         }
@@ -31,7 +31,7 @@ public class StateManager extends BaseStateManager {
     public List<FileInfo> listFiles() {
         List<FileInfo> filesClone;
         synchronized (filesLock) {
-            filesClone = new LinkedList<>(files);
+            filesClone = new LinkedList<>(state.files);
         }
         return filesClone;
     }
@@ -41,20 +41,20 @@ public class StateManager extends BaseStateManager {
     }
 
     public int generateFileId() {
-        return nextFileId.incrementAndGet();
+        return state.nextFileId.incrementAndGet();
     }
 
     public void addNewFile(int id, String name, long size) {
         FileInfo file = new FileInfo(id, name, size);
         synchronized (filesLock) {
-            files.add(file);
-            saveState(files);
+            state.files.add(file);
+            saveState(state);
         }
         sources.putIfAbsent(id, new ConcurrentHashMap<>());
     }
 
     public Set<InetSocketAddress> getFileSources(int fileId) {
-        Set<InetSocketAddress> seeders = new HashSet<>();
+        Set<InetSocketAddress> onlineSeeds = new HashSet<>();
         Map<InetSocketAddress, Long> fileSources = sources.get(fileId);
         long now = getNow();
         Iterator<Map.Entry<InetSocketAddress, Long>> it = fileSources.entrySet().iterator();
@@ -63,13 +63,18 @@ public class StateManager extends BaseStateManager {
             if (now - source.getValue() > MAX_SEEDER_TIMEOUT) {
                 it.remove();
             } else {
-                seeders.add(source.getKey());
+                onlineSeeds.add(source.getKey());
             }
         }
-        return seeders;
+        return onlineSeeds;
     }
 
     private static long getNow() {
         return System.currentTimeMillis();
+    }
+
+    private static final class State implements Serializable {
+        AtomicInteger nextFileId = new AtomicInteger(0);
+        List<FileInfo> files = new LinkedList<>();
     }
 }

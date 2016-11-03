@@ -31,6 +31,7 @@ public abstract class Request {
 
     protected abstract byte getType();
 
+    // package private to allow testing
     protected abstract void serialize(DataOutputStream stream) throws IOException;
 
     protected abstract void deserialize(DataInputStream stream) throws IOException;

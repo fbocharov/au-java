@@ -16,10 +16,10 @@ import ru.spbau.bocharov.torrent.util.BadCreatorException;
 import ru.spbau.bocharov.torrent.util.ObjectFactory;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,8 +51,15 @@ public class TorrentClient extends ConnectionHandler {
     private final StateManager stateManager;
     private final Storage storage;
 
-    public TorrentClient(short locPort, InetSocketAddress trackerAddr, Storage stor, String stateFilePath) {
-        this(locPort, trackerAddr, stor, stateFilePath, Files.exists(Paths.get(stateFilePath)));
+    public TorrentClient(short locPort, InetSocketAddress trackerAddr, Storage stor, String statePath) {
+        super(locPort);
+
+        localPort = locPort;
+        trackerAddress = trackerAddr;
+        storage = stor;
+        Path path = Paths.get(statePath);
+        boolean needLoad = Files.exists(path) && path.toFile().length() > 0;
+        stateManager = new StateManager(statePath, Files.exists(Paths.get(statePath)));
     }
 
     @Override
@@ -116,7 +123,7 @@ public class TorrentClient extends ConnectionHandler {
         runLeech(file);
     }
 
-    public void upload(String name) throws IOException {
+    public int upload(String name) throws IOException {
         if (!storage.exists(name)) {
             throw new FileNotFoundException(String.format("file %s doesn't exists", name));
         }
@@ -128,6 +135,7 @@ public class TorrentClient extends ConnectionHandler {
 
             int fileId = connection.getIn().readInt();
             stateManager.addNewFile(TorrentFile.createFull(fileId, name, size));
+            return fileId;
         }
     }
 
@@ -303,16 +311,6 @@ public class TorrentClient extends ConnectionHandler {
         }
     }
 
-
-    public TorrentClient(short locPort, InetSocketAddress trackerAddr, Storage stor,
-                         String stateFilePath, boolean loadState) {
-        super(locPort);
-
-        localPort = locPort;
-        trackerAddress = trackerAddr;
-        storage = stor;
-        stateManager = new StateManager(stateFilePath, loadState);
-    }
 
     private Connection connectToTracker() throws IOException {
         return new Connection(new Socket(trackerAddress.getAddress(), trackerAddress.getPort()));
