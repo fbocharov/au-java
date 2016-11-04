@@ -56,6 +56,10 @@ public class StateManager extends BaseStateManager {
     public Set<InetSocketAddress> getFileSources(int fileId) {
         Set<InetSocketAddress> onlineSeeds = new HashSet<>();
         Map<InetSocketAddress, Long> fileSources = sources.get(fileId);
+        if (fileSources == null) {
+            // unknown file -> no sources
+            return onlineSeeds;
+        }
         long now = getNow();
         Iterator<Map.Entry<InetSocketAddress, Long>> it = fileSources.entrySet().iterator();
         while (it.hasNext()) {

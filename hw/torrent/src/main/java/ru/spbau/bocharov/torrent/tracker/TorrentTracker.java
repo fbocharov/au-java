@@ -26,6 +26,8 @@ import java.util.Set;
 
 public class TorrentTracker extends ConnectionHandler {
 
+    public static final short DEFAULT_PORT = 8081;
+
     private static final Logger log = LogManager.getLogger(TorrentTracker.class);
 
     private static final ObjectFactory<Byte, Request> requestFactory = ObjectFactory.<Byte, Request>getInstance();
@@ -39,8 +41,6 @@ public class TorrentTracker extends ConnectionHandler {
             e.printStackTrace();
         }
     }
-
-    private static final short DEFAULT_PORT = 8081;
 
     private final StateManager stateManager;
 
@@ -126,12 +126,12 @@ public class TorrentTracker extends ConnectionHandler {
 
             int id = stateManager.generateFileId();
             try {
+                stateManager.addNewFile(id, request.getFileName(), request.getSize());
                 connection.getOut().writeInt(id);
             } catch (IOException e) {
                 log.error("failed to send file id, file not added");
                 return;
             }
-            stateManager.addNewFile(id, request.getFileName(), request.getSize());
         }
 
         @Override

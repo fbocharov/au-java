@@ -59,7 +59,7 @@ public class TorrentClient extends ConnectionHandler {
         storage = stor;
         Path path = Paths.get(statePath);
         boolean needLoad = Files.exists(path) && path.toFile().length() > 0;
-        stateManager = new StateManager(statePath, Files.exists(Paths.get(statePath)));
+        stateManager = new StateManager(statePath, needLoad);
     }
 
     @Override
