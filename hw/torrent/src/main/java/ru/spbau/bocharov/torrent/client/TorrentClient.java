@@ -51,6 +51,8 @@ public class TorrentClient extends ConnectionHandler {
     private final StateManager stateManager;
     private final Storage storage;
 
+    private DownloadStateListener downloadStateListener;
+
     public TorrentClient(short locPort, InetSocketAddress trackerAddr, Storage stor, String statePath) {
         super(locPort);
 
@@ -79,11 +81,6 @@ public class TorrentClient extends ConnectionHandler {
         super.stop();
         pool.shutdown();
         pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-    }
-
-    @Override
-    protected BaseResponser createResponser(Connection connection) {
-        return new Responser(connection);
     }
 
     public List<FileInfo> list() throws IOException {
@@ -139,6 +136,13 @@ public class TorrentClient extends ConnectionHandler {
         }
     }
 
+    public void addDownloadStateListener(DownloadStateListener listener) {
+        downloadStateListener = listener;
+    }
+
+    public String getFolder() {
+        return storage.getFolder();
+    }
 
     private final class Responser extends BaseResponser {
 
@@ -238,6 +242,11 @@ public class TorrentClient extends ConnectionHandler {
 
         LeechTask(TorrentFile file) {
             leechFile = file;
+
+            if (downloadStateListener != null) {
+                downloadStateListener.startDownload(
+                        new FileInfo(leechFile.getFileId(), leechFile.getFileName(), leechFile.getSize()));
+            }
         }
 
         @Override
@@ -246,6 +255,9 @@ public class TorrentClient extends ConnectionHandler {
                 for (int part: getSourceParts(source)) {
                     if (!leechFile.hasPart(part)) {
                         downloadPart(source, part);
+                        if (downloadStateListener != null) {
+                            downloadStateListener.updateState(leechFile.getFileId(), leechFile.getDownloadedPercent());
+                        }
                     }
                 }
                 if (leechFile.isDownloaded()) {
@@ -311,6 +323,11 @@ public class TorrentClient extends ConnectionHandler {
         }
     }
 
+
+    @Override
+    protected BaseResponser createResponser(Connection connection) {
+        return new Responser(connection);
+    }
 
     private Connection connectToTracker() throws IOException {
         return new Connection(new Socket(trackerAddress.getAddress(), trackerAddress.getPort()));

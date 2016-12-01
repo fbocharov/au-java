@@ -42,7 +42,12 @@ public class Storage {
         }
     }
 
+    String getFolder() {
+        return basePath;
+    }
+
     private Path getPath(String name) {
         return Paths.get(basePath, name);
     }
+
 }

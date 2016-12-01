@@ -16,9 +16,11 @@ public class TorrentFile implements Serializable {
     private final int fileId;
     @Getter
     private final String fileName;
+    @Getter
     private final long size;
     private final long lastPartSize;
     private final int partCount;
+    private long downloadedSize = 0;
 
     private final BitSet loadedParts;
 
@@ -68,6 +70,10 @@ public class TorrentFile implements Serializable {
         return parts;
     }
 
+    public double getDownloadedPercent() {
+        return (double) downloadedSize / size;
+    }
+
     public synchronized long getPartSize(int part) {
         if (!loadedParts.get(part) || part >= loadedParts.size()) {
             return 0;
@@ -78,6 +84,7 @@ public class TorrentFile implements Serializable {
 
     synchronized void addPart(int part) {
         loadedParts.set(part);
+        downloadedSize += getPartSize(part);
     }
 
     private TorrentFile(int id, String name, long sz, boolean full) {
