@@ -11,7 +11,7 @@ public class FixedSizeThreadPoolUDPServer extends BaseUDPServer {
 
     private final ExecutorService pool = Executors.newFixedThreadPool(THREAD_COUNT);
 
-    public FixedSizeThreadPoolUDPServer(short port) {
+    public FixedSizeThreadPoolUDPServer(int port) {
         super(port);
     }
 

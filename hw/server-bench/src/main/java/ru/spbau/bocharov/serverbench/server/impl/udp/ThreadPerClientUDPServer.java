@@ -5,7 +5,7 @@ import java.net.DatagramSocket;
 
 public class ThreadPerClientUDPServer extends BaseUDPServer {
 
-    public ThreadPerClientUDPServer(short port) {
+    public ThreadPerClientUDPServer(int port) {
         super(port);
     }
 
