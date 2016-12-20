@@ -53,7 +53,7 @@ public class ServerFactory {
         registry.put(ServerType.SINGLE_THREAD_TCP_SERVER, SingleThreadTCPServer.class);
         registry.put(ServerType.THREAD_PER_CLIENT_TCP_SERVER, ThreadPerClientTCPServer.class);
         registry.put(ServerType.THREAD_CACHING_TCP_SERVER, ThreadCachingTCPServer.class);
-        registry.put(ServerType.NONBLOCKING_TCP_SERVER, PollingTCPServer.class);
+        registry.put(ServerType.POLLING_TCP_SERVER, PollingTCPServer.class);
         registry.put(ServerType.ASYNC_TCP_SERVER, AsyncTCPServer.class);
     }
 }

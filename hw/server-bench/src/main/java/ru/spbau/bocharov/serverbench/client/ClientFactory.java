@@ -53,7 +53,7 @@ public class ClientFactory {
         registry.put(ServerType.SINGLE_THREAD_TCP_SERVER, NewConnectionPerRequestTCPClient.class);
         registry.put(ServerType.THREAD_PER_CLIENT_TCP_SERVER, PermanentConnectionTCPClient.class);
         registry.put(ServerType.THREAD_CACHING_TCP_SERVER, PermanentConnectionTCPClient.class);
-        registry.put(ServerType.NONBLOCKING_TCP_SERVER, PermanentConnectionTCPClient.class);
+        registry.put(ServerType.POLLING_TCP_SERVER, PermanentConnectionTCPClient.class);
         registry.put(ServerType.ASYNC_TCP_SERVER, PermanentConnectionTCPClient.class);
     }
 

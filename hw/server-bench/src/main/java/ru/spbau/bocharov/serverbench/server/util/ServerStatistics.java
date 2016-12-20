@@ -41,7 +41,7 @@ public class ServerStatistics {
             sum += values.get(i);
         }
 
-        return sum / size;
+        return size > 0 ? sum / size : 0;
     }
 
     private ServerStatistics() {}
