@@ -23,7 +23,7 @@ public class BenchmarkRunner {
 
     private static final ClientFactory factory = ClientFactory.getInstance();
 
-    private static final int TRY_COUNT = 10;
+    private static final int TRY_COUNT = 5;
     private static final int SERVER_BENCHMARK_PORT = 5432;
 
     private final String serverAddress;

@@ -25,8 +25,9 @@ public class NewConnectionPerRequestTCPClient extends BaseClient {
                 ProtocolIO.write(socket.getOutputStream(), before);
                 int[] after = ProtocolIO.read(socket.getInputStream());
                 Arrays.sort(before);
-                if (!Arrays.equals(before, after))
+                if (!Arrays.equals(before, after)) {
                     throw new RuntimeException("array is not sorted!");
+                }
 
                 Thread.sleep(delta);
             } catch (IOException e) {

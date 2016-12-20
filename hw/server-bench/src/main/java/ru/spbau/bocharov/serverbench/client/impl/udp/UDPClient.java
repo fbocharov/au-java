@@ -35,8 +35,9 @@ public class UDPClient extends BaseClient {
                 socket.receive(forReceive);
                 int[] after = ProtocolIO.unpack(forReceive);
                 Arrays.sort(before);
-                if (!Arrays.equals(before, after))
+                if (!Arrays.equals(before, after)) {
                     throw new RuntimeException("array is not sorted!");
+                }
 
                 Thread.sleep(delta);
                 requestCount--;
