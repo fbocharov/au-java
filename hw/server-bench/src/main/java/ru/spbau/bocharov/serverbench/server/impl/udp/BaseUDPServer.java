@@ -13,7 +13,8 @@ public abstract class BaseUDPServer extends BaseServer {
 
     private static final Logger log = LogManager.getLogger(BaseUDPServer.class);
 
-    private static final int BUFFER_SIZE = 256 * 1024; // 256 Kb
+    private static final int MAX_DATAGRAM_SIZE = 64 * 1024; // 64 Kb
+    private static final int BUFFER_SIZE = 32 * 1024 * 1024; // 32 Mb
 
     private DatagramSocket ssocket;
 
@@ -26,7 +27,10 @@ public abstract class BaseUDPServer extends BaseServer {
         return () -> {
             try (DatagramSocket socket = new DatagramSocket(port)) {
                 ssocket = socket;
-                byte[] buffer = new byte[BUFFER_SIZE];
+                ssocket.setSendBufferSize(BUFFER_SIZE);
+                ssocket.setReceiveBufferSize(BUFFER_SIZE);
+
+                byte[] buffer = new byte[MAX_DATAGRAM_SIZE];
 
                 log.info("started UDP server on port " + port);
                 while (!ssocket.isClosed()) {

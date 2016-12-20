@@ -23,7 +23,6 @@ public class PermanentConnectionTCPClient extends BaseClient {
             while (requestCount > 0) {
                 int[] before = createArray(arraySize);
                 ProtocolIO.write(socket.getOutputStream(), before);
-                // receive message, not performing any checks
                 int[] after = ProtocolIO.read(socket.getInputStream());
                 Arrays.sort(before);
                 if (!Arrays.equals(before, after))

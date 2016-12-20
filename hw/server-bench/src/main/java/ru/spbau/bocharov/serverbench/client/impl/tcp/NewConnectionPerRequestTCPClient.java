@@ -7,6 +7,7 @@ import ru.spbau.bocharov.serverbench.common.ProtocolIO;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class NewConnectionPerRequestTCPClient extends BaseClient {
 
@@ -20,9 +21,13 @@ public class NewConnectionPerRequestTCPClient extends BaseClient {
     public void run(int arraySize, int requestCount, long delta) {
         while (requestCount > 0) {
             try (Socket socket = new Socket(serverAddress, serverPort)) {
-                ProtocolIO.write(socket.getOutputStream(), createArray(arraySize));
-                // receive message, not performing any checks
-                ProtocolIO.read(socket.getInputStream());
+                int[] before = createArray(arraySize);
+                ProtocolIO.write(socket.getOutputStream(), before);
+                int[] after = ProtocolIO.read(socket.getInputStream());
+                Arrays.sort(before);
+                if (!Arrays.equals(before, after))
+                    throw new RuntimeException("array is not sorted!");
+
                 Thread.sleep(delta);
             } catch (IOException e) {
                 log.error("failed to perform IO operation: " + e.getMessage());
