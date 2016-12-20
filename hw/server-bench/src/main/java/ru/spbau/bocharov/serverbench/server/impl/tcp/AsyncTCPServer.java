@@ -49,7 +49,7 @@ public class AsyncTCPServer extends BaseServer {
 
     private static class Context {
         volatile long clientTime;
-        volatile long requestStartTime;
+        volatile long requestStartTime = System.nanoTime();
 
         final AsynchronousSocketChannel channel;
 
@@ -180,8 +180,8 @@ public class AsyncTCPServer extends BaseServer {
                 return;
             }
 
-            long requestStartTime = System.nanoTime() - context.requestStartTime;
-            ServerStatistics.getInstance().push(context.clientTime, requestStartTime);
+            long requestTime = System.nanoTime() - context.requestStartTime;
+            ServerStatistics.getInstance().push(context.clientTime, requestTime);
             context.reset();
 
             context.channel.read(context.sizeBuffer, null,
