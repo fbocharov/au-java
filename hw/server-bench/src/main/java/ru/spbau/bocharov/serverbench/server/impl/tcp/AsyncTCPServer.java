@@ -9,6 +9,7 @@ import ru.spbau.bocharov.serverbench.server.algo.Sort;
 import ru.spbau.bocharov.serverbench.server.util.ServerStatistics;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
@@ -115,6 +116,14 @@ public class AsyncTCPServer extends BaseServer {
             if (context.sizeBuffer.hasRemaining()) {
                 if (result != -1) {
                     context.channel.read(context.sizeBuffer, null, this);
+                } else {
+                    try {
+                        context.channel.close();
+                    } catch (IOException e) {
+                        log.error("failed to close channel when nothing to read: " + e.getMessage());
+                        e.printStackTrace();
+                        throw new UncheckedIOException(e);
+                    }
                 }
                 return;
             }
@@ -139,6 +148,14 @@ public class AsyncTCPServer extends BaseServer {
             if (context.request.hasRemaining()) {
                 if (result != -1) {
                     context.channel.read(context.request, null, this);
+                } else {
+                    try {
+                        context.channel.close();
+                    } catch (IOException e) {
+                        log.error("failed to close channel when nothing to read: " + e.getMessage());
+                        e.printStackTrace();
+                        throw new UncheckedIOException(e);
+                    }
                 }
                 return;
             }
