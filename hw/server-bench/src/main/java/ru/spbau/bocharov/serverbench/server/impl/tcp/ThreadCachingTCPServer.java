@@ -24,8 +24,8 @@ public class ThreadCachingTCPServer extends BaseTCPServer {
     }
 
     @Override
-    public void stop() throws IOException, InterruptedException {
-        super.stop();
+    protected void shutdownServer() throws IOException, InterruptedException {
+        super.shutdownServer();
         pool.shutdown();
         pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
     }

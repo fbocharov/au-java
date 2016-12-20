@@ -10,15 +10,20 @@ import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public abstract class BaseTCPServer implements BaseServer {
+public abstract class BaseTCPServer extends BaseServer {
 
     private static final Logger log = LogManager.getLogger(BaseTCPServer.class);
 
     private ServerSocket ssocket;
-    private final Thread selfThread;
 
     BaseTCPServer(int port) {
-        selfThread = new Thread(() -> {
+        super(port);
+    }
+
+
+    @Override
+    protected Runnable createServer(int port) {
+        return () -> {
             try (ServerSocket ss = new ServerSocket(port)) {
                 ssocket = ss;
 
@@ -33,25 +38,12 @@ public abstract class BaseTCPServer implements BaseServer {
                 log.error("io error occured: " + e.getMessage());
                 throw new UncheckedIOException(e);
             }
-        });
+        };
     }
 
-    public void start() {
-        if (ssocket != null) {
-            throw new ServerException("server already started");
-        }
-
-        selfThread.start();
-    }
-
-    public void stop() throws IOException, InterruptedException {
-        if (ssocket == null) {
-            throw new ServerException("server not running");
-        }
-
+    @Override
+    protected void shutdownServer() throws IOException, InterruptedException {
         ssocket.close();
-        selfThread.join();
-        ssocket = null;
     }
 
     protected abstract void handle(Socket client, Job job);

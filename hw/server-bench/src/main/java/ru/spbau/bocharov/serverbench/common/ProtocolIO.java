@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.io.*;
 import java.net.DatagramPacket;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class ProtocolIO {
@@ -40,14 +41,30 @@ public class ProtocolIO {
         return fromMessage(message);
     }
 
-    public static DatagramPacket pack(int[] array) {
+    public static DatagramPacket pack(int[] array) throws IOException {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(byteStream);
+
         Protocol.Message message = toMessage(array);
-        byte[] bytes = message.toByteArray();
+        byte[] msgBytes = message.toByteArray();
+        out.writeInt(msgBytes.length);
+        out.write(msgBytes);
+
+        byte[] bytes = byteStream.toByteArray();
         return new DatagramPacket(bytes, bytes.length);
     }
 
-    public static int[] unpack(DatagramPacket packet) throws InvalidProtocolBufferException {
-        Protocol.Message message = Protocol.Message.parseFrom(packet.getData());
+    public static int[] unpack(DatagramPacket packet) throws IOException {
+        ByteArrayInputStream byteStream = new ByteArrayInputStream(packet.getData());
+        DataInputStream in = new DataInputStream(byteStream);
+
+        int size = in.readInt();
+        byte[] msgBytes = new byte[size];
+        if (size != in.read(msgBytes)) {
+            throw new IOException("can't read message bytes from packet");
+        }
+
+        Protocol.Message message = Protocol.Message.parseFrom(msgBytes);
         return fromMessage(message);
     }
 

@@ -27,7 +27,7 @@ public class ClientFactory {
         Class cls = registry.get(type);
         try {
             return (BaseClient) cls
-                    .getConstructor(String.class, Integer.class)
+                    .getConstructor(String.class, int.class)
                     .newInstance(serverAddress, serverPort);
         } catch (InstantiationException e) {
             error = String.format("failed to instantiate %s: %s", cls.getName(), e.getMessage());

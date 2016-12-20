@@ -27,14 +27,14 @@ public class ServerFactory {
         Class cls = registry.get(type);
         try {
             return (BaseServer) cls
-                    .getConstructor(Integer.class)
+                    .getConstructor(int.class)
                     .newInstance(port);
         } catch (InstantiationException e) {
             error = String.format("failed to instantiate %s: %s", cls.getName(), e.getMessage());
         } catch (IllegalAccessException e) {
             error = String.format("%s doesn't have public constructor", cls.getName());
         } catch (NoSuchMethodException e) {
-            error = String.format("%s doesn't have public constructor from String and int", cls.getName());
+            error = String.format("%s doesn't have public constructor from int", cls.getName());
         } catch (InvocationTargetException e) {
             error = String.format("%s constructor thrown exception: %s", cls.getName(), e.getMessage());
         }

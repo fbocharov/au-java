@@ -1,6 +1,5 @@
 package ru.spbau.bocharov.serverbench.client;
 
-import java.net.UnknownHostException;
 import java.util.Random;
 
 public abstract class BaseClient {

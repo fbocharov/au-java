@@ -1,6 +1,6 @@
 package ru.spbau.bocharov.serverbench.client;
 
-public class ClientMain {
+public class GUIClientMain {
 
     public static void main(String[] args) {
 

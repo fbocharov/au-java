@@ -4,19 +4,18 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.spbau.bocharov.serverbench.client.BaseClient;
 import ru.spbau.bocharov.serverbench.client.ClientFactory;
-import ru.spbau.bocharov.serverbench.common.BenchmarkResult;
 import ru.spbau.bocharov.serverbench.common.ServerType;
 import ru.spbau.bocharov.serverbench.util.FactoryException;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class BenchmarkRunner {
 
@@ -29,6 +28,8 @@ public class BenchmarkRunner {
 
     private final String serverAddress;
     private final int serverPort;
+
+    private final AtomicLong clientRunningTime = new AtomicLong(0);
 
     public BenchmarkRunner(String address, int port) {
         serverAddress = address;
@@ -55,13 +56,17 @@ public class BenchmarkRunner {
     }
 
     private void runOnce(BenchmarkConfiguration configuration) throws InterruptedException {
+        clientRunningTime.set(0);
         ExecutorService pool = Executors.newFixedThreadPool(configuration.getClientCount());
         for (int i = 0; i < configuration.getClientCount(); ++i) {
             pool.execute(() -> {
                 try {
                     BaseClient client = factory.create(configuration.getServerType(),
                             serverAddress, SERVER_BENCHMARK_PORT);
+                    long time = System.nanoTime();
                     client.run(configuration.getArraySize(), configuration.getRequestCount(), configuration.getDelta());
+                    time = System.nanoTime() - time;
+                    clientRunningTime.addAndGet(time / configuration.getClientCount());
                 } catch (FactoryException e) {
                     log.error("failed to create client: " + e.getMessage());
                     throw new RuntimeException(e);
@@ -91,7 +96,10 @@ public class BenchmarkRunner {
 
     private BenchmarkResult obtainResult(Socket serverCtl) throws IOException, ClassNotFoundException {
         new DataOutputStream(serverCtl.getOutputStream()).writeInt(0);
-        ObjectInputStream in = new ObjectInputStream(serverCtl.getInputStream());
-        return (BenchmarkResult) in.readObject();
+        DataInputStream in = new DataInputStream(serverCtl.getInputStream());
+        long clientProcessingTime = in.readLong();
+        long requestProcessingTime = in.readLong();
+
+        return new BenchmarkResult(clientRunningTime.get(), clientProcessingTime, requestProcessingTime);
     }
 }

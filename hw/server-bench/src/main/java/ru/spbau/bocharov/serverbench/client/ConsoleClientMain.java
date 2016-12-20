@@ -2,7 +2,7 @@ package ru.spbau.bocharov.serverbench.client;
 
 import ru.spbau.bocharov.serverbench.client.benchmark.BenchmarkConfiguration;
 import ru.spbau.bocharov.serverbench.client.benchmark.BenchmarkRunner;
-import ru.spbau.bocharov.serverbench.common.BenchmarkResult;
+import ru.spbau.bocharov.serverbench.client.benchmark.BenchmarkResult;
 import ru.spbau.bocharov.serverbench.common.ServerType;
 
 public class ConsoleClientMain {
@@ -18,10 +18,12 @@ public class ConsoleClientMain {
         int requestCount = Integer.valueOf(args[5]);
         long delta = Long.valueOf(args[6]);
 
-        BenchmarkRunner runner = new BenchmarkRunner(serverAddress, serverPort);
+        BenchmarkRunner benchmark = new BenchmarkRunner(serverAddress, serverPort);
         BenchmarkConfiguration configuration = new BenchmarkConfiguration(clientCount,
                 ServerType.values()[serverType], arraySize, requestCount, delta);
-        BenchmarkResult result = runner.run(configuration);
-        // TODO: print result
+        BenchmarkResult result = benchmark.run(configuration);
+
+        System.out.println(String.format("%d     %d     %d",
+                result.clientRunningTime, result.clientProcessingTime, result.requestProcessingTime));
     }
 }
