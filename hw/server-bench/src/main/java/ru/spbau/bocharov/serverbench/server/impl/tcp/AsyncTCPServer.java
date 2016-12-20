@@ -10,14 +10,11 @@ import ru.spbau.bocharov.serverbench.server.util.ServerStatistics;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousChannelGroup;
+import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 public class AsyncTCPServer extends BaseServer {
 
@@ -34,7 +31,6 @@ public class AsyncTCPServer extends BaseServer {
         return () -> {
             try {
                 serverChannel = AsynchronousServerSocketChannel.open();
-                serverChannel.setOption(StandardSocketOptions.SO_RCVBUF, 1000);
                 serverChannel.bind(new InetSocketAddress(port));
                 serverChannel.accept(null, new AsyncAcceptHandler());
             } catch (IOException e) {
@@ -48,6 +44,7 @@ public class AsyncTCPServer extends BaseServer {
         if (serverChannel != null) {
             serverChannel.close();
         }
+        serverChannel = null;
     }
 
     private static class Context {
@@ -73,10 +70,15 @@ public class AsyncTCPServer extends BaseServer {
         }
     }
 
-    private static abstract class BaseHandler<V> implements CompletionHandler<V, Object> {
+    private abstract class BaseHandler<V> implements CompletionHandler<V, Object> {
 
         @Override
         public void failed(Throwable exc, Object attachment) {
+            if (serverChannel == null && exc instanceof AsynchronousCloseException) {
+                // server stopped -> do nothing
+                return;
+            }
+
             log.error("async operation failed: " + exc.getMessage());
             System.err.print("async op failed: ");
             exc.printStackTrace();
@@ -100,7 +102,7 @@ public class AsyncTCPServer extends BaseServer {
         }
     }
 
-    private static class AsyncReadSizeHandler extends BaseHandler<Integer> {
+    private class AsyncReadSizeHandler extends BaseHandler<Integer> {
 
         private final Context context;
 
@@ -124,7 +126,7 @@ public class AsyncTCPServer extends BaseServer {
         }
     }
 
-    private static class AsyncReadRequestHandler extends BaseHandler<Integer> {
+    private class AsyncReadRequestHandler extends BaseHandler<Integer> {
 
         private final Context context;
 
@@ -163,7 +165,7 @@ public class AsyncTCPServer extends BaseServer {
         }
     }
 
-    private static class AsyncWriteResponseHandler extends BaseHandler<Integer> {
+    private class AsyncWriteResponseHandler extends BaseHandler<Integer> {
 
         private final Context context;
 
