@@ -3,6 +3,8 @@ package ru.spbau.bocharov.serverbench.client.benchmark;
 import lombok.Getter;
 import ru.spbau.bocharov.serverbench.common.ServerType;
 
+import java.util.Iterator;
+
 public class BenchmarkConfiguration {
 
     @Getter
@@ -22,5 +24,21 @@ public class BenchmarkConfiguration {
         arraySize = arSize;
         requestCount = requests;
         delta = d;
+    }
+
+    public static Iterator<BenchmarkConfiguration> makeIterator(
+            ServerType serverType, ParameterRange clientsRange, ParameterRange arraySizeRange,
+            ParameterRange requstCountRange, ParameterRange deltaRange) {
+        return new Iterator<BenchmarkConfiguration>() {
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public BenchmarkConfiguration next() {
+                return null;
+            }
+        };
     }
 }

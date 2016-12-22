@@ -44,7 +44,7 @@ public class BenchmarkRunner {
                 result = obtainResult(serverCtl);
                 // TODO: get mean from results
             } catch (IOException e) {
-                log.error("failed to setup server: " + e.getMessage());
+                log.error("io error occured: " + e.getMessage());
                 break;
             } catch (ClassNotFoundException e) {
                 log.error("server send unknown class as a result: " + e.getMessage());
