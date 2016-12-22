@@ -8,26 +8,22 @@ import ru.spbau.bocharov.serverbench.common.ServerType;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Iterator;
 
-public class MainWindow extends JFrame {
+class MainWindow extends JFrame {
 
     private static final int WIDTH = 400;
     private static final int HEIGHT = 600;
 
-    private final BenchmarkRunner model;
     private final JComboBox<ServerDescriptor> serverDescriptionCombobox = createComboBox();
     private final ParameterPanel arraySizePanel = new ParameterPanel("Element count (N)");
     private final ParameterPanel clientCountPanel = new ParameterPanel("Client count (M)   ");
     private final ParameterPanel deltaPanel = new ParameterPanel("Time delta (ms)    ");
     private final ParameterPanel requestCountPanel = new ParameterPanel("Request count (X)");
+    private final JTextArea resultArea = new JTextArea();
 
 
     MainWindow(BenchmarkRunner benchmark) {
-        model = benchmark;
-
         setTitle("Benchmark 1.0");
         setSize(WIDTH, HEIGHT);
         setLocationRelativeTo(null);
@@ -68,18 +64,21 @@ public class MainWindow extends JFrame {
             new Thread(() -> {
                 Iterator<BenchmarkConfiguration> it = BenchmarkConfiguration.makeIterator(
                         ((ServerDescriptor) serverDescriptionCombobox.getSelectedItem()).getType(),
-                        clientsRange, arraySizeRange, requestsRange, deltaRange);
+                        arraySizeRange, clientsRange, requestsRange, deltaRange);
 
                 while (it.hasNext()) {
                     BenchmarkConfiguration configuration = it.next();
+
+                    printConfiguration(configuration);
                     try {
-                        BenchmarkResult result = model.run(configuration);
-                        // TODO: print result
+                        BenchmarkResult result = benchmark.run(configuration);
+                        printResult(result);
                     } catch (InterruptedException ex) {
                         JOptionPane.showMessageDialog(MainWindow.this,
                                 "Error while running benchmark: " + ex.getMessage(),
                                 "Error", JOptionPane.ERROR_MESSAGE);
                         ex.printStackTrace();
+                        break;
                     }
                 }
                 runButton.setEnabled(true);
@@ -88,23 +87,9 @@ public class MainWindow extends JFrame {
         });
         controlPanel.add(runButton);
         commonPanel.add(controlPanel, BorderLayout.PAGE_START);
+        resultArea.setEditable(false);
+        commonPanel.add(new JScrollPane(resultArea), BorderLayout.CENTER);
         add(commonPanel);
-    }
-
-    private boolean checkRange(ParameterRange range, String prefix) {
-        if (range.to == 0) {
-            JOptionPane.showMessageDialog(MainWindow.this,
-                    prefix + " step field should be > 0", "Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-
-        if (range.step == 0) {
-            JOptionPane.showMessageDialog(MainWindow.this,
-                    prefix + " step field should be > 0", "Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-
-        return true;
     }
 
     private static JComboBox<ServerDescriptor> createComboBox() {
@@ -127,5 +112,50 @@ public class MainWindow extends JFrame {
                 "TCP server with async non-bocking client handling"));
 
         return comboBox;
+    }
+
+    private boolean checkRange(ParameterRange range, String prefix) {
+        if (range.from < 0) {
+            JOptionPane.showMessageDialog(MainWindow.this,
+                    prefix + " from field should be >= 0", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        if (range.to <= 0) {
+            JOptionPane.showMessageDialog(MainWindow.this,
+                    prefix + " step field should be > 0", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        if (range.step <= 0) {
+            JOptionPane.showMessageDialog(MainWindow.this,
+                    prefix + " step field should be > 0", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        return true;
+    }
+
+    private void printConfiguration(BenchmarkConfiguration configuration) {
+        String sep = System.lineSeparator();
+        String text =
+                "Benchmark configuration:" + sep +
+                "Array size: " + configuration.getArraySize() + sep +
+                "Client count: " + configuration.getClientCount() + sep +
+                "Request count: " + configuration.getRequestCount() + sep +
+                "Time delta: " + configuration.getDelta() + sep +
+                "------------------------------------------------------" + sep +
+                "client run time | client proc time | request proc time" + sep +
+                "------------------------------------------------------" + sep;
+
+        SwingUtilities.invokeLater(() -> resultArea.append(text));
+    }
+
+    private void printResult(BenchmarkResult result) {
+        String text = String.format(
+                "%15d | %16d | %17d" + System.lineSeparator() +
+                "======================================================" + System.lineSeparator(),
+                result.clientRunningTime, result.clientProcessingTime, result.requestProcessingTime);
+        SwingUtilities.invokeLater(() -> resultArea.append(text));
     }
 }
