@@ -37,12 +37,16 @@ public class BenchmarkRunner {
     }
 
     public BenchmarkResult run(BenchmarkConfiguration configuration) throws InterruptedException {
-        BenchmarkResult result = null;
+        long clientRunTime = 0;
+        long clientProcTime = 0;
+        long requestProcTime = 0;
         for (int i = 0; i < TRY_COUNT; ++i) {
             try (Socket serverCtl = setupServer(configuration.getServerType())) {
                 runOnce(configuration);
-                result = obtainResult(serverCtl);
-                // TODO: get mean from results
+                BenchmarkResult result = obtainResult(serverCtl);
+                clientRunTime += result.clientRunningTime;
+                clientProcTime += result.clientProcessingTime;
+                requestProcTime += result.requestProcessingTime;
             } catch (IOException e) {
                 log.error("io error occured: " + e.getMessage());
                 break;
@@ -52,7 +56,10 @@ public class BenchmarkRunner {
             }
         }
 
-        return result;
+        return new BenchmarkResult(
+                clientRunTime / TRY_COUNT,
+                clientProcTime / TRY_COUNT,
+                requestProcTime / TRY_COUNT);
     }
 
     private void runOnce(BenchmarkConfiguration configuration) throws InterruptedException {

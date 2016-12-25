@@ -46,15 +46,15 @@ public class PollingTCPServer extends BaseServer {
                         SelectionKey key = it.next();
                         it.remove();
 
-                        if (key.isAcceptable()) {
+                        if (key.isValid() && key.isAcceptable()) {
                             accept(key);
                         }
 
-                        if (key.isReadable()) {
+                        if (key.isValid() && key.isReadable()) {
                             read(key);
                         }
 
-                        if (key.isWritable()) {
+                        if (key.isValid() && key.isWritable()) {
                             write(key);
                         }
                     }
@@ -138,19 +138,18 @@ public class PollingTCPServer extends BaseServer {
 
                 context.sizeBuffer.flip();
                 context.request = ByteBuffer.allocate(context.sizeBuffer.getInt());
+                context.state = Context.State.READING_DATA;
             case READING_DATA:
                 channel.read(context.request);
                 if (context.request.hasRemaining()) {
                     break;
                 }
 
-                context.request.flip();
-                byte[] bytes =  new byte[context.request.position()];
-                context.request.get(bytes);
                 context.state = Context.State.EXECUTING;
                 pool.execute(() -> {
                     try {
-                        int[] array = ProtocolIO.fromRaw(bytes);
+                        context.request.flip();
+                        int[] array = ProtocolIO.fromRaw(context.request.array());
                         context.clientTime = System.nanoTime();
                         Sort.insertionSort(array);
                         context.clientTime = System.nanoTime() - context.clientTime;

@@ -138,15 +138,16 @@ class MainWindow extends JFrame {
 
     private void printConfiguration(BenchmarkConfiguration configuration) {
         String sep = System.lineSeparator();
-        String text =
+        String text = String.format(
                 "Benchmark configuration:" + sep +
                 "Array size: " + configuration.getArraySize() + sep +
                 "Client count: " + configuration.getClientCount() + sep +
                 "Request count: " + configuration.getRequestCount() + sep +
                 "Time delta: " + configuration.getDelta() + sep +
                 "------------------------------------------------------" + sep +
-                "client run time | client proc time | request proc time" + sep +
-                "------------------------------------------------------" + sep;
+                "%15s | %16s | %17s" + sep +
+                "------------------------------------------------------" + sep,
+                "client run time", "client proc time", "request proc time" );
 
         SwingUtilities.invokeLater(() -> resultArea.append(text));
     }
@@ -154,8 +155,9 @@ class MainWindow extends JFrame {
     private void printResult(BenchmarkResult result) {
         String text = String.format(
                 "%15d | %16d | %17d" + System.lineSeparator() +
-                "======================================================" + System.lineSeparator(),
-                result.clientRunningTime, result.clientProcessingTime, result.requestProcessingTime);
+                "%53s" + System.lineSeparator(),
+                result.clientRunningTime, result.clientProcessingTime, result.requestProcessingTime,
+                "=====================================================");
         SwingUtilities.invokeLater(() -> resultArea.append(text));
     }
 }
