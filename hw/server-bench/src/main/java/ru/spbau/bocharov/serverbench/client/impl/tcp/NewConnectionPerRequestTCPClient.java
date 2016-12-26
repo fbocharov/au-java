@@ -6,6 +6,9 @@ import ru.spbau.bocharov.serverbench.client.BaseClient;
 import ru.spbau.bocharov.serverbench.common.ProtocolIO;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Arrays;
 
@@ -20,10 +23,20 @@ public class NewConnectionPerRequestTCPClient extends BaseClient {
     @Override
     public void run(int arraySize, int requestCount, long delta) {
         while (requestCount > 0) {
-            try (Socket socket = new Socket(serverAddress, serverPort)) {
+            InetAddress addr = null;
+            int port = -1;
+
+            try (Socket socket = new Socket(serverAddress, serverPort);
+                 InputStream in = socket.getInputStream();
+                 OutputStream out = socket.getOutputStream()) {
+//                socket.setSoTimeout(Integer.MAX_VALUE);
+//                socket.setSoLinger(false, 0);
                 int[] before = createArray(arraySize);
-                ProtocolIO.write(socket.getOutputStream(), before);
-                int[] after = ProtocolIO.read(socket.getInputStream());
+                addr = socket.getLocalAddress();
+                port = socket.getLocalPort();
+                ProtocolIO.write(out, before);
+                log.info(addr + ":" + port + " send data");
+                int[] after = ProtocolIO.read(in);
                 Arrays.sort(before);
                 if (!Arrays.equals(before, after)) {
                     throw new RuntimeException("array is not sorted!");
@@ -31,9 +44,11 @@ public class NewConnectionPerRequestTCPClient extends BaseClient {
 
                 Thread.sleep(delta);
             } catch (IOException e) {
-                log.error("failed to perform IO operation: " + e.getMessage());
+                log.error(addr + ":" + port + "failed to perform IO operation: " + e.getMessage());
+                e.printStackTrace();
             } catch (InterruptedException e) {
                 log.error("interrupted while sleeping between iterations: " + e.getMessage());
+                e.printStackTrace();
             }
             requestCount--;
         }

@@ -8,6 +8,10 @@ import ru.spbau.bocharov.serverbench.common.ServerType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Iterator;
 
 class MainWindow extends JFrame {
@@ -79,6 +83,8 @@ class MainWindow extends JFrame {
                                 "Error", JOptionPane.ERROR_MESSAGE);
                         ex.printStackTrace();
                         break;
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
                     }
                 }
                 runButton.setEnabled(true);
@@ -152,12 +158,15 @@ class MainWindow extends JFrame {
         SwingUtilities.invokeLater(() -> resultArea.append(text));
     }
 
-    private void printResult(BenchmarkResult result) {
-        String text = String.format(
-                "%15d | %16d | %17d" + System.lineSeparator() +
-                "%53s" + System.lineSeparator(),
-                result.clientRunningTime, result.clientProcessingTime, result.requestProcessingTime,
-                "=====================================================");
-        SwingUtilities.invokeLater(() -> resultArea.append(text));
+    private void printResult(BenchmarkResult result) throws IOException {
+        try (DataOutputStream file = new DataOutputStream(new FileOutputStream("results.txt", true))) {
+            String text = String.format(
+                    "%15d | %16d | %17d" + System.lineSeparator() +
+                            "%53s" + System.lineSeparator(),
+                    result.clientRunningTime, result.clientProcessingTime, result.requestProcessingTime,
+                    "=====================================================");
+            file.writeUTF(text);
+            SwingUtilities.invokeLater(() -> resultArea.append(text));
+        }
     }
 }

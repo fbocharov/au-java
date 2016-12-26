@@ -17,10 +17,9 @@ public class SingleThreadTCPServer extends BaseTCPServer {
 
     @Override
     protected void handle(Socket client, Job job) {
-        try (InputStream in  = client.getInputStream();
-             OutputStream out = client.getOutputStream()) {
+        try {
             log.info("start handling " + client.getInetAddress().getHostName() + ":" + client.getPort());
-            job.execute(in, out);
+            job.execute(client.getInputStream(), client.getOutputStream());
             log.info("done handling " + client.getInetAddress().getHostName() + ":" + client.getPort());
         } catch (IOException e) {
             log.error("io error occured: " + e.getMessage());

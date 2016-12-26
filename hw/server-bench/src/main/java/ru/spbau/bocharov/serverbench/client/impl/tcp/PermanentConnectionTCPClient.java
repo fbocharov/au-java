@@ -20,9 +20,11 @@ public class PermanentConnectionTCPClient extends BaseClient {
     @Override
     public void run(int arraySize, int requestCount, long delta) {
         try (Socket socket = new Socket(serverAddress, serverPort)) {
+            socket.setSoLinger(false, 0);
             while (requestCount > 0) {
                 int[] before = createArray(arraySize);
                 ProtocolIO.write(socket.getOutputStream(), before);
+                log.info(socket.getLocalAddress() + ":" + socket.getLocalPort() + " send data");
                 int[] after = ProtocolIO.read(socket.getInputStream());
                 Arrays.sort(before);
                 if (!Arrays.equals(before, after)) {
@@ -34,8 +36,10 @@ public class PermanentConnectionTCPClient extends BaseClient {
             }
         } catch (IOException e) {
             log.error("failed to perform IO operation: " + e.getMessage());
+            e.printStackTrace();
         } catch (InterruptedException e) {
             log.error("interrupted while sleeping between iterations: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

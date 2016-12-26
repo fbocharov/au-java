@@ -33,8 +33,9 @@ public class ThreadCachingTCPServer extends BaseTCPServer {
     @Override
     protected void handle(Socket client, Job job) {
         pool.execute(() -> {
-            try (InputStream in = client.getInputStream();
-                 OutputStream out = client.getOutputStream()) {
+            try {
+                InputStream in = client.getInputStream();
+                OutputStream out = client.getOutputStream();
                 log.info("start handling " + client.getInetAddress().getHostName() + ":" + client.getPort());
                 while (!client.isClosed()) {
                     job.execute(in, out);

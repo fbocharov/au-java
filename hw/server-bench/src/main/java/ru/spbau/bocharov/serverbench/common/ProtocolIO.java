@@ -1,6 +1,7 @@
 package ru.spbau.bocharov.serverbench.common;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.net.DatagramPacket;
@@ -9,33 +10,20 @@ import java.util.Arrays;
 
 public class ProtocolIO {
 
-    private static final int BUFFER_SIZE = 1024;
-
     public static void write(OutputStream stream, int[] array) throws IOException {
         byte[] bytes = toRaw(array);
         DataOutputStream out = new DataOutputStream(stream);
         out.writeInt(bytes.length);
-        out.write(bytes);
+        stream.write(bytes);
     }
 
     public static int[] read(InputStream stream) throws IOException {
-        DataInputStream in = new DataInputStream(stream);
+        final int messageLength = new DataInputStream(stream).readInt();
+        byte[] data = new byte[messageLength];
+        final int readCount = IOUtils.read(stream, data);
+        assert readCount == messageLength;
 
-        int size = in.readInt();
-        ByteArrayOutputStream tmp = new ByteArrayOutputStream();
-        byte[] buffer = new byte[BUFFER_SIZE];
-
-        while (size > 0) {
-            int readCount = in.read(buffer, 0, BUFFER_SIZE);
-            if (readCount == -1 && size > 0) {
-                throw new ProtocolException("failed to read full message: stream closed");
-            }
-
-            tmp.write(buffer, 0, readCount);
-            size -= readCount;
-        }
-
-        return fromRaw(tmp.toByteArray());
+        return fromRaw(data);
     }
 
     public static DatagramPacket pack(int[] array) throws IOException {

@@ -5,7 +5,7 @@ import java.net.SocketException;
 
 public abstract class BaseServer {
 
-    boolean serverStarted;
+    private boolean serverStarted;
     private final Thread selfThread;
 
     public BaseServer(int port) {

@@ -12,9 +12,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class BenchmarkRunner {
@@ -49,9 +47,15 @@ public class BenchmarkRunner {
                 requestProcTime += result.requestProcessingTime;
             } catch (IOException e) {
                 log.error("io error occured: " + e.getMessage());
+                e.printStackTrace();
                 break;
             } catch (ClassNotFoundException e) {
                 log.error("server send unknown class as a result: " + e.getMessage());
+                e.printStackTrace();
+                break;
+            } catch (BrokenBarrierException e) {
+                log.error("failed to await barrier: " + e.getMessage());
+                e.printStackTrace();
                 break;
             }
         }
@@ -62,14 +66,16 @@ public class BenchmarkRunner {
                 requestProcTime / TRY_COUNT);
     }
 
-    private void runOnce(BenchmarkConfiguration configuration) throws InterruptedException {
+    private void runOnce(BenchmarkConfiguration configuration) throws InterruptedException, BrokenBarrierException {
         clientRunningTime.set(0);
         ExecutorService pool = Executors.newFixedThreadPool(configuration.getClientCount());
+        CyclicBarrier barrier = new CyclicBarrier(configuration.getClientCount() + 1);
         for (int i = 0; i < configuration.getClientCount(); ++i) {
             pool.execute(() -> {
                 try {
                     BaseClient client = factory.create(configuration.getServerType(),
                             serverAddress, SERVER_BENCHMARK_PORT);
+                    barrier.await();
                     long time = System.nanoTime();
                     client.run(configuration.getArraySize(), configuration.getRequestCount(), configuration.getDelta());
                     time = System.nanoTime() - time;
@@ -77,9 +83,13 @@ public class BenchmarkRunner {
                 } catch (FactoryException e) {
                     log.error("failed to create client: " + e.getMessage());
                     throw new RuntimeException(e);
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    log.error("failed to await barrier: " + e.getMessage());
+                    e.printStackTrace();
                 }
             });
         }
+        barrier.await();
         pool.shutdown();
         pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
     }
